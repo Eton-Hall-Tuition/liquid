@@ -1,0 +1,9 @@
+{
+  "name": "liquid-ERP",
+  "description": "Complete retail ERP for shop operations, billing, inventory, and financial tracking with FIFO logic.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

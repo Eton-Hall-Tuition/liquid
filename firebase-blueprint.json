@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with role-based permissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "role": { "type": "string", "enum": ["Super Admin", "Admin", "Sales", "Inventory Manager"] },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "aadhaarUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Inactive", "Pending"] }
+      },
+      "required": ["id", "name", "role", "email"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Inventory product definition",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "unitType": { "type": "string", "enum": ["ml", "unit"] },
+        "industryPrice": { "type": "number" },
+        "sellingPrice": { "type": "number" },
+        "gainPerUnit": { "type": "number" },
+        "marginPercentage": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Inactive"] }
+      },
+      "required": ["id", "name", "sellingPrice"]
+    },
+    "DailyStock": {
+      "title": "DailyStock",
+      "description": "Operational journal for a specific day",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["OPEN", "CLOSED"] },
+        "openedAt": { "type": "string" },
+        "openedBy": { "type": "string" },
+        "closedAt": { "type": "string" },
+        "closedBy": { "type": "string" },
+        "openingValuation": { "type": "number" },
+        "closingValuation": { "type": "number" },
+        "openingCash": { "type": "number" },
+        "closingCash": { "type": "number" },
+        "totalSales": { "type": "number" },
+        "totalPurchases": { "type": "number" },
+        "totalExpenses": { "type": "number" },
+        "paymentBreakdown": {
+          "type": "object",
+          "properties": {
+            "cash": { "type": "number" },
+            "qr": { "type": "number" },
+            "card": { "type": "number" }
+          }
+        }
+      },
+      "required": ["id", "date", "status"]
+    },
+    "Batch": {
+      "title": "Batch",
+      "description": "A specific batch of inventory with cost tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "purchaseId": { "type": "string" },
+        "productId": { "type": "string" },
+        "initialQuantity": { "type": "number" },
+        "currentQuantity": { "type": "number" },
+        "unitCost": { "type": "number" },
+        "expiryDate": { "type": "string" },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "productId", "initialQuantity", "currentQuantity", "unitCost"]
+    },
+    "Sale": {
+      "title": "Sale",
+      "description": "Transaction record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dailyStockId": { "type": "string" },
+        "totalAmount": { "type": "number" },
+        "totalProfit": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["Cash", "QR", "Card"] },
+        "timestamp": { "type": "string" },
+        "processedBy": { "type": "string" },
+        "items": { "type": "array" }
+      },
+      "required": ["id", "dailyStockId", "totalAmount"]
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "Inbound stock record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dailyStockId": { "type": "string" },
+        "productId": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "supplier": { "type": "string" },
+        "quantity": { "type": "number" },
+        "unitCost": { "type": "number" },
+        "totalAmount": { "type": "number" },
+        "paymentStatus": { "type": "string", "enum": ["Paid", "Pending"] },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "productId", "quantity", "unitCost"]
+    },
+    "Expense": {
+      "title": "Expense",
+      "description": "Outbound cash for operations",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "dailyStockId": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "category": { "type": "string" },
+        "paymentMethod": { "type": "string", "enum": ["Cash", "QR", "Card"] },
+        "timestamp": { "type": "string" }
+      },
+      "required": ["id", "dailyStockId", "amount"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "System audit trail",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "action": { "type": "string" },
+        "module": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "details": { "type": "string" },
+        "type": { "type": "string", "enum": ["success", "warning", "error", "info"] }
+      },
+      "required": ["id", "userId", "action", "module", "timestamp"]
+    },
+    "AppSetting": {
+      "title": "AppSetting",
+      "description": "System-wide settings",
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "enum": ["dark", "light"] },
+        "primaryColor": { "type": "string" },
+        "shopName": { "type": "string" }
+      }
+    }
+  },
+  "firestore": {
+    "users": { "schema": "User", "description": "System users" },
+    "products": { "schema": "Product", "description": "Inventory products" },
+    "dailyStocks": { "schema": "DailyStock", "description": "Daily operational sessions" },
+    "batches": { "schema": "Batch", "description": "Stock batches" },
+    "sales": { "schema": "Sale", "description": "Sales transactions" },
+    "purchases": { "schema": "Purchase", "description": "Purchases records" },
+    "expenses": { "schema": "Expense", "description": "Business expenses" },
+    "auditLogs": { "schema": "AuditLog", "description": "Audit trails" },
+    "config/settings": { "schema": "AppSetting", "description": "Global application configuration" }
+  }
+}

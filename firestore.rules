@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email.toLower() == 'leviyathanindustries@gmail.com' || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Super Admin')
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email.toLower() == 'leviyathanindustries@gmail.com' || 
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['Super Admin', 'Admin'])
+      );
+    }
+
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // --- Users ---
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || request.auth.token.email.toLower() == userId.toLower() || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && (request.auth.uid == userId || request.auth.token.email.toLower() == 'leviyathanindustries@gmail.com' || isAdmin());
+      allow update: if (isAdmin() && (incoming().role == existing().role || isSuperAdmin())) || 
+                   (request.auth.uid == userId && incoming().diff(existing()).affectedKeys().hasOnly(['phone', 'photoUrl', 'aadhaarUrl', 'status']));
+      allow delete: if isSuperAdmin() || (isSignedIn() && (request.auth.token.email.toLower() == userId.toLower() || request.auth.uid == userId));
+    }
+
+    // --- Products ---
+    match /products/{productId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // --- Daily Stocks ---
+    match /dailyStocks/{stockId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn();
+    }
+
+    // --- Batches ---
+    match /batches/{batchId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+
+    // --- Sales ---
+    match /sales/{saleId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Purchases ---
+    match /purchases/{purchaseId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Expenses ---
+    match /expenses/{expenseId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // --- Audit Logs ---
+    match /auditLogs/{logId} {
+      allow get: if isSignedIn();
+      allow list: if isAdmin();
+      allow create: if isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    // --- Config ---
+    match /config/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Default deny for anything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
